@@ -10,20 +10,24 @@ import { StreamService } from './stream.service';
       <button (click)="stopStream()">Stop Stream</button>
       <button (click)="toggleLiveInteractionOverlay()">Toggle Live Interaction Overlay</button>
     </div>
-    
     <div class="viewer-analytics">
       <p>Current Viewers: {{ viewerCount$ | async }}</p>
     </div>
   `,
   styleUrls: ['./streamdesk-dashboard.component.css']
 })
+
 export class StreamdeskDashboardComponent implements OnInit {
   
   viewerCount$: Observable<number>;
 
   constructor(private streamService: StreamService) { }
 
-  ngOnInit() {
+  ngOnInit(): void {
+    this.initializeViewerCount();
+  }
+
+  private initializeViewerCount(): void {
     this.viewerCount$ = this.streamService.getViewerCount();
   }
 
