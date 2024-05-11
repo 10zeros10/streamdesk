@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, HttpResponse, Responder, middleware::Logger};
+use actix_web::{web, App, HttpServer, HttpResponse, Responder, middleware::Logger, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
 use std::env;
@@ -27,41 +27,49 @@ struct UserProfileResponse {
 }
 
 async fn login(login_req: web::Json<LoginRequest>, db_pool: web::Data<sqlx::PgPool>) -> impl Responder {
-    let user = sqlx::query!(
+    let user_result = sqlx::query!(
         "SELECT * FROM users WHERE username = $1 AND password = $2",
         login_req.username,
         login_req.password 
     )
     .fetch_optional(&**db_pool)
-    .await
-    .unwrap();
+    .await;
 
-    if user.is_some() {
-        HttpResponse::Ok().json(LoginResponse { token: "fake_token".to_string() }) 
-    } else {
-        HttpResponse::Unauthorized().finish()
+    match user_result {
+        Ok(Some(_user)) => {
+            HttpResponse::Ok().json(LoginResponse { token: "fake_token".to_string() }) 
+        },
+        Ok(None) => HttpResponse::Unauthorized().finish(),
+        Err(e) => {
+            log::error!("Failed to execute query: {:?}", e);
+            HttpResponse::InternalServerError().json("Internal Server Error")
+        },
     }
 }
 
 async fn update_user_profile(user_id: web::Path<i32>, profile_req: web::Json<UserProfileRequest>, db_pool: web::Data<sqlx::PgPool>) -> impl Responder {
-    sqlx::query!(
+    match sqlx::query!(
         "UPDATE users SET bio = $1 WHERE id = $2",
         profile_req.bio,
         user_id.0
     )
     .execute(&**db_pool)
-    .await
-    .unwrap();
-
-    HttpResponse::Ok().json(UserProfileResponse {
-        id: user_id.0,
-        username: "ExampleUser".to_string(), 
-        bio: profile_req.bio.clone(),
-    })
+    .await {
+        Ok(_) => HttpResponse::Ok().json(UserProfileResponse {
+            id: user_id.0,
+            username: "ExampleUser".to_string(),
+            bio: profile_req.bio.clone(),
+        }),
+        Err(e) => {
+            log::error!("Failed to execute update query: {:?}", e);
+            HttpResponse::InternalServerError().json("Internal Server Error")
+        }
+    }
 }
 
 async fn validate_token(req: web::HttpRequest) -> Result<(), actix_web::Error> {
     let token = req.headers().get("Authorization").and_then(|v| v.to_str().ok());
+
     match token {
         Some(t) if t == "Bearer fake_token" => Ok(()),
         _ => Err(actix_web::error::ErrorUnauthorized("Invalid Token")),
