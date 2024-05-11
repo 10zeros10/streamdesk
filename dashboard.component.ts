@@ -6,12 +6,12 @@ import { StreamService } from './stream.service';
   selector: 'app-streamdesk-dashboard',
   template: `
     <div class="stream-controls">
-      <button (click)="startStream()">Start Stream</button>
-      <button (click)="stopStream()">Stop Stream</button>
-      <button (click)="toggleLiveInteractionOverlay()">Toggle Live Interaction Overlay</button>
+      <button (click)="activateStream()">Start Stream</button>
+      <button (click)="deactivateStream()">Stop Stream</button>
+      <button (click)="toggleViewerInteractionOverlay()">Toggle Live Interaction Overlay</button>
     </div>
     <div class="viewer-analytics">
-      <p>Current Viewers: {{ viewerCount$ | async }}</p>
+      <p>Current Viewers: {{ currentViewerCount$ | async }}</p>
     </div>
   `,
   styleUrls: ['./streamdesk-dashboard.component.css']
@@ -19,36 +19,36 @@ import { StreamService } from './stream.service';
 
 export class StreamdeskDashboardComponent implements OnInit {
   
-  viewerCount$: Observable<number>;
+  currentViewerCount$: Observable<number>;
 
   constructor(private streamService: StreamService) { }
 
   ngOnInit(): void {
-    this.initializeViewerCount();
+    this.fetchViewerCount();
   }
 
-  private initializeViewerCount(): void {
-    this.viewerCount$ = this.streamService.getViewerCount();
+  private fetchViewerCount(): void {
+    this.currentViewerCount$ = this.streamService.fetchCurrentViewerCount();
   }
 
-  startStream(): void {
-    this.streamService.startStream().subscribe({
-      next: (response) => console.log('Stream started', response),
-      error: (error) => console.error('Error starting stream', error),
+  activateStream(): void {
+    this.streamService.activateStreamService().subscribe({
+      next: (response) => console.log('Stream activation successful', response),
+      error: (error) => console.error('Error activating stream', error),
     });
   }
 
-  stopStream(): void {
-    this.streamService.stopStream().subscribe({
-      next: (response) => console.log('Stream stopped', response),
-      error: (error) => console.error('Error stopping stream', error),
+  deactivateStream(): void {
+    this.streamService.deactivateStreamService().subscribe({
+      next: (response) => console.log('Stream deactivation successful', response),
+      error: (error) => console.error('Error deactivating stream', error),
     });
   }
 
-  toggleLiveInteractionOverlay(): void {
-    this.streamService.toggleLiveInteractionOverlay().subscribe({
-      next: (response) => console.log('Overlay toggled', response),
-      error: (error) => console.error('Error toggling overlay', error),
+  toggleViewerInteractionOverlay(): void {
+    this.streamService.toggleViewerInteraction().subscribe({
+      next: (response) => console.log('Viewer interaction overlay toggled', response),
+      error: (error) => console.error('Error toggling viewer interaction overlay', error),
     });
   }
 }
