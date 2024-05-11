@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 
 struct StreamData {
-    data: String, 
+    data: String,
 }
 
 struct StreamFilter {
@@ -10,9 +10,9 @@ struct StreamFilter {
 }
 
 struct LiveStreamManager {
-    input_streams: Vec<StreamData>, 
-    filters: Vec<StreamFilter>,     
-    outputs: HashMap<String, Vec<StreamData>>, 
+    input_streams: Vec<StreamData>,
+    filters: Vec<StreamFilter>,
+    outputs: HashMap<String, Vec<StreamData>>,
 }
 
 impl LiveStreamManager {
@@ -41,7 +41,10 @@ impl LiveStreamManager {
     }
 
     fn distribute_to_outputs(&mut self) {
-        let platforms = env::var("OUTPUT_PLATFORMS").unwrap_or_else(|_| "default".into()).split(',');
+        let platforms_str = env::var("OUTPUT_PLATFORMS")
+            .unwrap_or_else(|_| "default".into());
+
+        let platforms = platforms_str.split(',');
         for platform in platforms {
             let platform_data = self.input_streams.clone(); 
             self.outputs.insert(platform.to_string(), platform_data);
@@ -55,6 +58,11 @@ impl LiveStreamManager {
 }
 
 fn main() {
+    match env::var("OUTPUT_PLATFORMS") {
+        Ok(value) => println!("Using OUTPUT_PLATFORMS: {}", value),
+        Err(e) => eprintln!("Couldn't read OUTPUT_PLATFORMS (using default): {}", e),
+    }
+
     let mut manager = LiveStreamManager::new();
 
     manager.add_stream_data(StreamData { data: "First live stream data".to_string() });
