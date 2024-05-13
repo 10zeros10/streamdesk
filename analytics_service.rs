@@ -4,7 +4,7 @@ use tokio::sync::mpsc;
 use serde_json::Value;
 use std::env;
 use log::{error, info};
-use anyhow::Result;
+use anyhow::{Result, Context};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Viewer {
@@ -39,7 +39,7 @@ impl Analytics {
 
     fn calculate_engagement(&mut self) {
         for (content, views) in &self.content_performance {
-            let engagement = (*views as f32 / 1000.0) * 100.0; 
+            let engagement = (*views as f32 / 1000.0) * 100.0;
             self.engagement_stats.insert(content.clone(), engagement);
         }
     }
@@ -47,10 +47,10 @@ impl Analytics {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenv::dotenv().ok(); 
-    env_logger::init();  
+    dotenv::dotenv().context("Failed to load .env file")?;
+    env_logger::init().context("Failed to initialize logger")?;
 
-    let (tx, mut rx) = mpsc::channel(32);
+    let (tx, mut rx) = mpsc::channel(32); 
 
     tokio::spawn(async move {
         let stream_data = vec![
