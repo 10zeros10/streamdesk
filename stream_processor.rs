@@ -17,18 +17,22 @@ struct LiveStreamManager {
 
 impl LiveStreamManager {
     fn new() -> LiveStreamManager {
-        LiveStreamManager {
+        let mut manager = LiveStreamManager {
             input_streams: Vec::new(),
             filters: Vec::new(),
             outputs: HashMap::new(),
-        }
+        };
+        manager.log("LiveStreamManager created");
+        manager
     }
 
     fn add_stream_data(&mut self, data: StreamData) {
+        self.log(format!("Adding stream data: {}", data.data).as_str());
         self.input_streams.push(data);
     }
 
     fn add_filter(&mut self, filter: StreamFilter) {
+        self.log(format!("Adding filter: {}", filter.keyword).as_str());
         self.filters.push(filter);
     }
 
@@ -37,23 +41,34 @@ impl LiveStreamManager {
             self.input_streams = self.input_streams.iter().filter(|&data| {
                 data.data.contains(&filter.keyword)
             }).cloned().collect();
+            self.log(format!("Applied filter: {}", filter.keyword).as_str());
         }
     }
 
     fn distribute_to_outputs(&mut self) {
         let platforms_str = env::var("OUTPUT_PLATFORMS")
-            .unwrap_or_else(|_| "default".into());
+            .unwrap_or_else(|_| {
+                self.log("OUTPUT_PLATFORMS not set, using default.");
+                "default".into()
+            });
 
         let platforms = platforms_str.split(',');
         for platform in platforms {
             let platform_data = self.input_streams.clone(); 
             self.outputs.insert(platform.to_string(), platform_data);
+            self.log(format!("Distributed streams to output: {}", platform).as_str());
         }
     }
 
     pub fn process_stream(&mut self) {
+        self.log("Starting stream processing");
         self.apply_filters();
         self.distribute_to_outputs();
+        self.log("Stream processing completed");
+    }
+
+    fn log(&self, message: &str) {
+        println!("[LiveStreamManager LOG]: {}", message);
     }
 }
 
