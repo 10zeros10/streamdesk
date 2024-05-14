@@ -3,20 +3,21 @@ use std::env;
 use dotenv::dotenv;
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn start_http_server() -> std::io::Result<()> {
     dotenv().ok();
-    let server_url = env::var("SERVER_URL").expect("SERVER_URL not found in .env file");
+    let http_server_address = env::var("SERVER_URL").expect("SERVER_URL not found in .env file");
 
-    println!("Starting server at: {}", &server_url);
+    println!("Starting HTTP server at: {}", &http_server_address);
 
     HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
             .service(
                 web::scope("/api")
+                // Here, you can add your API endpoints and their respective handlers
             )
     })
-    .bind(server_url)?
+    .bind(http_server_address)?
     .run()
     .await
 }
