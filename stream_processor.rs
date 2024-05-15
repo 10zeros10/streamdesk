@@ -16,8 +16,8 @@ struct LiveStreamManager {
 }
 
 impl LiveStreamManager {
-    fn new() -> LiveStreamManager {
-        let mut manager = LiveStreamManager {
+    fn new() -> Self {
+        let manager = LiveStreamManager {
             input_streams: Vec::new(),
             filters: Vec::new(),
             outputs: HashMap::new(),
@@ -27,36 +27,33 @@ impl LiveStreamManager {
     }
 
     fn add_stream_data(&mut self, data: StreamData) {
-        self.log(format!("Adding stream data: {}", data.data).as_str());
+        self.log(&format!("Adding stream data: {}", data.data));
         self.input_streams.push(data);
     }
 
     fn add_filter(&mut self, filter: StreamFilter) {
-        self.log(format!("Adding filter: {}", filter.keyword).as_str());
+        self.log(&format!("Adding filter: {}", filter.keyword));
         self.filters.push(filter);
     }
 
     fn apply_filters(&mut self) {
         for filter in &self.filters {
-            self.input_streams = self.input_streams.iter().filter(|&data| {
-                data.data.contains(&filter.keyword)
-            }).cloned().collect();
-            self.log(format!("Applied filter: {}", filter.keyword).as_str());
+            self.input_streams.retain(|data| data.data.contains(&filter.keyword));
+            self.log(&format!("Applied filter: {}", filter.keyword));
         }
     }
 
     fn distribute_to_outputs(&mut self) {
-        let platforms_str = env::var("OUTPUT_PLATFORMS")
-            .unwrap_or_else(|_| {
-                self.log("OUTPUT_PLATFORMS not set, using default.");
-                "default".into()
-            });
+        let platforms_str = env::var("OUTPUT_PLATFORMS").unwrap_or_else(|_| {
+            self.log("OUTPUT_PLATFORMS not set, using default.");
+            "default".into()
+        });
 
         let platforms = platforms_str.split(',');
         for platform in platforms {
-            let platform_data = self.input_streams.clone(); 
+            let platform_data = self.input_streams.clone();
             self.outputs.insert(platform.to_string(), platform_data);
-            self.log(format!("Distributed streams to output: {}", platform).as_str());
+            self.log(&format!("Distributed streams to output: {}", platform));
         }
     }
 
