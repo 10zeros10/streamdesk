@@ -1,10 +1,10 @@
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use tokio::sync::mpsc;
-use serde_json::Value;
-use std::env;
+use anyhow::{Context, Result};
 use log::{error, info};
-use anyhow::{Result, Context};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
+use std::env;
+use tokio::sync::mpsc;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Viewer {
@@ -22,9 +22,9 @@ struct Content {
 
 #[derive(Default, Debug)]
 struct Analytics {
-    viewer_demographics: HashMap<String, u32>, 
-    content_performance: HashMap<String, u32>, 
-    engagement_stats: HashMap<String, f32>, 
+    viewer_demographics: HashMap<String, u32>,
+    content_performance: HashMap<String, u32>,
+    engagement_stats: HashMap<String, f32>,
 }
 
 impl Analytics {
@@ -50,24 +50,25 @@ async fn main() -> Result<()> {
     dotenv::dotenv().context("Failed to load .env file")?;
     env_logger::init().context("Failed to initialize logger")?;
 
-    let (tx, mut rx) = mpsc::channel(32); 
+    let (tx, mut rx) = mpsc::channel(32);
 
     tokio::spawn(async move {
         let stream_data = vec![
-            ("{\"id\": \"1\", \"age\": 25, \"location\": \"USA\"}", "{\"id\": \"1\", \"title\": \"Rust Basics\", \"views\": 150}"),
+            (
+                "{\"id\": \"1\", \"age\": 25, \"location\": \"USA\"}",
+                "{\"id\": \"1\", \"title\": \"Rust Basics\", \"views\": 150}",
+            ),
         ];
 
         for data in stream_data {
             match serde_json::from_str::<Viewer>(data.0) {
-                Ok(viewer) => {
-                    match serde_json::from_str::<Content>(data.1) {
-                        Ok(content) => {
-                            if let Err(e) = tx.send((viewer, content)).await {
-                                error!("Error sending data through channel: {}", e);
-                            }
-                        },
-                        Err(e) => error!("Error deserializing content: {}", e),
+                Ok(viewer) => match serde_json::from_str::<Content>(data.1) {
+                    Ok(content) => {
+                        if let Err(e) = tx.send((viewer, content)).await {
+                            error!("Error sending data through channel: {}", e);
+                        }
                     }
+                    Err(e) => error!("Error deserializing content: {}", e),
                 },
                 Err(e) => error!("Error deserializing viewer: {}", e),
             }
