@@ -4,43 +4,60 @@ use dotenv::dotenv;
 
 #[actix_web::main]
 async fn start_http_server() -> std::io::Result<()> {
+    load_environment();
+    let http_server_address = get_server_address();
+
+    let server = create_server();
+    let server = bind_server_to_address(server, &http_server_address)?;
+
+    run_server(server).await
+}
+
+fn load_environment() {
     dotenv().ok();
-    // Using .unwrap_or_else to provide a fallback value or handle the error more gracefully
-    let http_server_address = env::var("SERVER_URL").unwrap_or_else(|_| {
-        eprintln!("SERVER_URL not found in .env file, defaulting to localhost:8080");
-        "localhost:8080".into() // Provide a default address or handle it as an error, as suited
-    });
+}
 
-    println!("Starting HTTP server at: {}", &http_server_address);
+fn get_server_address() -> String {
+    env::var("SERVER_URL").unwrap_or_else(|_| {
+        let default_address = "localhost:8080";
+        eprintln!("SERVER_URL not found in .env file, defaulting to {}", default_address);
+        default_address.into()
+    })
+}
 
-    let server = HttpServer::new(|| {
+fn create_server() -> HttpServer {
+    HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
-            // Example ping endpoint for basic API structure
-            .service(
-                web::scope("/api")
-                .route("/ping", web::get().to(|| async { HttpResponse::Ok().body("pong") }))
-                // Here, you can add more of your API endpoints and their respective handlers
-            )
-    });
+            .service(api_routes())
+    })
+}
 
-    // Improved error handling for server binding
-    let server = match server.bind(&http_server_address) {
-        Ok(server) => server,
-        Err(e) => {
-            eprintln!("Failed to bind to {}: {}", &http_server_address, e);
-            return Err(e); // Exit if binding fails
-        }
-    };
+fn api_routes() -> actix_web::Scope {
+    web::scope("/api")
+        .route("/ping", web::get().to(ping_handler))
+}
 
-    // Improved error handling for server run
-    match server.run().await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            eprintln!("Server run error: {}", e);
-            Err(e) // Propagate the error
-        }
-    }
+async fn ping_handler() -> HttpResponse {
+    HttpResponse::Ok().body("pong")
+}
+
+fn bind_server_to_address(
+    server: HttpServer,
+    address: &str,
+) -> Result<HttpServer, std::io::Error> {
+    server.bind(address).map_err(|e| {
+        eprintln!("Failed to bind to {}: {}", address, e);
+        e
+    })
+}
+
+async fn run_server(server: HttpServer) -> std::io::Result<()> {
+    println!("Server running...");
+    server.run().await.map_err(|e| {
+        eprintln!("Server run error: {}", e);
+        e
+    })
 }
 
 fn main() {
