@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angular and Rust WebAssembly App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        async function initWasm() {
+            try {
+                const wasmModule = await import('./path/to/your/rust_wasm_module.js');
+                window.rustWasm = wasmModule;
+            } catch(err) {
+                console.error('Failed to load the Rust WebAssembly module:', err);
+            }
+        }
+        initWasm();
+    </script>
+</head>
+<body>
+    <app-root>Loading...</app-root>
+    <script>
+        window.env = {
+            API_URL: '{{API_URL}}',
+        };
+    </script>
+    <script src="runtime.js" defer></script>
+    <script src="polyfills.js" defer></script>
+    <script src="styles.js" defer></script>
+    <script src="vendor.js" defer></script>
+    <script src="main.js" defer></script>
+</body>
+</html>
