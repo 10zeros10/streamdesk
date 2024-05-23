@@ -6,89 +6,89 @@ interface ChatMessage {
   message: string;
 }
 
-interface Poll {
+interface Survey {
   question: string;
   options: string[];
-  responses: Map<string, number>;
+  votes: Map<string, number>; 
 }
 
-interface QnA {
+interface FAQ {
   question: string;
-  answer: string | null;
+  answer: string | null; 
 }
 
-class ChatSystem {
-  private listeners: ((message: ChatMessage) => void)[] = [];
+class MessageDispatcher {
+  private messageHandlers: ((message: ChatMessage) => void)[] = [];
 
   constructor() {
     setInterval(() => {
-      const mockMessage: ChatMessage = {
+      const testMessage: ChatMessage = { 
         username: 'Viewer_' + Math.floor(Math.random() * 100),
         message: 'This is a test message!',
       };
-      this.listeners.forEach(listener => listener(mockMessage));
+      this.messageHandlers.forEach(handler => handler(testMessage));
     }, 1000);
   }
 
-  onMessageReceived(listener: (message: ChatMessage) => void): void {
-    this.listeners.push(listener);
+  subscribeToMessages(handler: (message: ChatMessage) => void): void { 
+    this.messageHandlers.push(handler);
   }
 }
 
-class LiveStreamInteractionManager {
-  private chatSystem: ChatSystem;
-  private polls: Poll[] = [];
-  private qAndASession: QnA[] = [];
+class StreamInteractionManager {
+  private messageSystem: MessageDispatcher; 
+  private activePolls: Survey[] = []; 
+  private debateSection: FAQ[] = []; 
 
   constructor() {
-    this.chatSystem = new ChatSystem();
-    this.chatSystem.onMessageReceived(this.handleChatMessage.bind(this));
+    this.messageSystem = new MessageDispatcher();
+    this.messageSystem.subscribeToMessages(this.interpretChatMessage.bind(this)); 
   }
 
-  private handleChatMessage(message: ChatMessage): void {
+  private interpretChatMessage(message: ChatMessage): void { 
     console.log(`Message received from ${message.username}: ${message.message}`);
   }
 
-  createPoll(question: string, options: string[]): Poll {
-    const poll: Poll = {
+  initiatePoll(question: string, options: string[]): Survey { 
+    const survey: Survey = { 
       question,
       options,
-      responses: new Map(),
+      votes: new Map(), 
     };
-    this.polls.push(poll);
-    return poll;
+    this.activePolls.push(survey);
+    return survey;
   }
 
-  voteInPoll(pollId: number, option: string): void {
-    const poll = this.polls[pollId];
-    if (poll) {
-      const currentVotes = poll.responses.get(option) || 0;
-      poll.responses.set(option, currentVotes + 1);
+  recordVote(pollIndex: number, option: string): void { 
+    const survey = this.activePolls[pollIndex]; 
+    if (survey) {
+      const currentVotes = survey.votes.get(option) || 0;
+      survey.votes.set(option, currentVotes + 1);
       console.log(`Vote recorded for option: ${option}`);
     } else {
-      console.log(`Poll with ID ${pollId} not found.`);
+      console.log(`Survey with Index ${pollIndex} not found.`);
     }
   }
 
-  askQuestion(question: string): void {
-    this.qAndASession.push({
+  postQuestion(question: string): void { 
+    this.debateSection.push({ 
       question,
       answer: null,
     });
-    console.log(`Question asked: ${question}`);
+    console.log(`Question posted: ${question}`);
   }
 
-  answerQuestion(questionId: number, answer: string): void {
-    const questionObj = this.qAndASession[questionId];
-    if (questionObj && questionObj.answer === null) {
-      questionObj.answer = answer;
-      console.log(`Answered: ${answer}`);
+  provideAnswer(questionIndex: number, answer: string): void { 
+    const faq = this.debateSection[questionIndex]; 
+    if (faq && faq.answer === null) {
+      faq.answer = answer;
+      console.log(`Answer provided: ${answer}`);
     } else {
-      console.log(`Question with ID ${questionId} was already answered or not found.`);
+      console.log(`FAQ with Index ${questionIndex} was already answered or not found.`);
     }
   }
 }
 
-const manager = new LiveStreamInteractionManager();
-manager.createPoll("Who is your favorite character?", ["Character A", "Character B", "Character C"]);
-manager.askQuestion("How to implement feature X in language Y?");
+const streamManager = new StreamInteractionManager(); 
+streamManager.initiatePoll("Who is your favorite character?", ["Character A", "Character B", "Character C"]);
+streamManager.postQuestion("How to implement feature X in language Y?");
