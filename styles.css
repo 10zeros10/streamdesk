@@ -6,6 +6,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   line-height: 1.6;
+  background-color: #eaeaea; /* Background color added for overall consistency */
 }
 a {
   text-decoration: none;
@@ -13,18 +14,23 @@ a {
 }
 a:hover {
   color: #0056b3;
+  transition: color 0.3s; /* Smooth color transition for links */
 }
 .container {
   max-width: 1100px;
   margin: auto;
   padding-left: 20px;
   padding-right: 20px;
+  background: white; /* Background color for container */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Box shadow for depth */
+  border-radius: 8px; /* Rounded corners for modern look */
 }
 .header {
   padding: 20px 0;
   background: #f4f4f4;
   color: #333;
   text-align: center;
+  border-radius: 8px 8px 0 0; /* Rounded corners for the top */
 }
 .header h1 {
   margin-bottom: 10px;
@@ -36,11 +42,13 @@ a:hover {
   background: #333;
   color: white;
   padding: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Box shadow for depth */
 }
 .navbar a {
   color: white;
   padding: 10px 15px;
   margin: 0 5px;
+  transition: background 0.3s; /* Smooth background transition */
 }
 .navbar a:hover {
   background: #575757;
@@ -52,6 +60,7 @@ a:hover {
   flex: 1;
   background: #f4f4f4;
   padding: 20px;
+  box-shadow: inset -1px 0 10px rgba(0,0,0,0.1); /* Inner shadow for a subtle depth */
 }
 .sidebar ul {
   list-style: none;
@@ -65,9 +74,11 @@ a:hover {
 .content {
   flex: 3;
   padding: 20px;
+  border-left: 2px solid #f0f0f0; /* Slight separation from sidebar */
 }
 .content h2 {
   margin-bottom: 20px;
+  font-family: 'Segoe UI Semibold', Tahoma, Geneva, Verdana, sans-serif; /* Slightly bolder font for headers */
 }
 .content p {
   margin-bottom: 10px;
@@ -77,6 +88,7 @@ a:hover {
   padding: 20px 0;
   background: #222;
   color: #ddd;
+  border-radius: 0 0 8px 8px; /* Rounded corners for the bottom */
 }
 .btn {
   display: inline-block;
@@ -85,10 +97,13 @@ a:hover {
   padding: 10px 20px;
   margin: 5px;
   border-radius: 5px;
-  transition: background 0.3s;
+  transition: all 0.3s; /* Smooth transition for multiple properties */
+  border: none; /* Remove border */
+  cursor: pointer; /* Implicitly suggest clickable */
 }
 .btn:hover {
   background: #0056b3;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Adding shadow on hover for depth */
 }
 .text-center {
   text-align: center;
@@ -97,4 +112,7 @@ a:hover {
   content: "";
   display: table;
   clear: both;
+}
+.section-padding {
+  padding: 20px 0;
 }
