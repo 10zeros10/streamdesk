@@ -50,27 +50,44 @@ class InteractionController {
   }
 
   createPoll(question: string, options: string[]): Poll {
+    if (!question || options.length === 0) {
+      throw new Error('Poll must have a question and at least one option.');
+    }
+
     const newPoll: Poll = {
       question,
       options,
       voteTally: new Map(),
     };
+
     this.activePolls.push(newPoll);
+    console.log(`Poll created with question: ${question}`);
     return newPoll;
   }
 
   castVote(pollIndex: number, option: string): void {
-    const selectedPoll = this.activePolls[pollIndex];
-    if (selectedPoll) {
-      const votesForOption = selectedPoll.voteTally.get(option) || 0;
-      selectedPoll.voteTally.set(option, votesForOption + 1);
-      console.log(`Vote for "${option}" recorded.`);
-    } else {
-      console.log(`Poll with Index ${pollIndex} not found.`);
+    if (pollIndex < 0 || pollIndex >= this.activePolls.length) {
+      console.error(`Poll at index ${pollIndex} does not exist.`);
+      return;
     }
+
+    const selectedPoll = this.activePolls[pollIndex];
+    if (!selectedPoll.options.includes(option)) {
+      console.error(`Option "${option}" is not valid for the poll.`);
+      return;
+    }
+
+    const votesForOption = selectedPoll.voteTally.get(option) || 0;
+    selectedPoll.voteTally.set(option, votesForOption + 1);
+    console.log(`Vote for "${option}" recorded.`);
   }
 
   submitQuestion(question: string): void {
+    if (!question.trim()) {
+      console.error('Question cannot be empty.');
+      return;
+    }
+
     this.faqSection.push({
       question,
       answer: null,
@@ -79,13 +96,24 @@ class InteractionController {
   }
 
   answerFAQ(questionIndex: number, answer: string): void {
-    const faqItem = this.faqSection[questionIndex];
-    if (faqItem && faqItem.answer === null) {
-      faqItem.answer = answer;
-      console.log(`Answer provided: ${answer}`);
-    } else {
-      console.log(`FAQ Item with Index ${questionIndex} has been previously answered or not found.`);
+    if (questionIndex < 0 || questionIndex >= this.faqSection.length) {
+      console.error(`FAQ item at index ${questionIndex} does not exist.`);
+      return;
     }
+
+    const faqItem = this.faqSection[questionIndex];
+    if (!faqItem) {
+      console.error(`FAQ Item with Index ${questionIndex} not found.`);
+      return;
+    }
+
+    if (faqItem.answer !== null) {
+      console.error(`FAQ Item with Index ${questionIndex} has already been answered.`);
+      return;
+    }
+
+    faqItem.answer = answer;
+    console.log(`Answer provided: ${answer}`);
   }
 }
 
